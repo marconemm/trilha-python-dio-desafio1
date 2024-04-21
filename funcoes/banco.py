@@ -3,44 +3,53 @@ from funcoes.utils import clear
 import re
 
 saldo = 0.0
-limite = 500.00
 extratoTxt = ""
 numero_saques = 0
+SAQUE_MAXIMO = 500.00
 LIMITE_SAQUES = 3
 EXTRATO_ARQUIVO = "extrato.txt"
 VOLTAR = "V"
 
 
 def saque() -> None:
-    global saldo, limite, numero_saques, LIMITE_SAQUES, VOLTAR
+    global saldo, numero_saques, SAQUE_MAXIMO, LIMITE_SAQUES, VOLTAR
     ERR_TXT = "Saque não realizado."
     VALOR = recebe_input("Informe o valor do saque:")
 
     if VALOR != VOLTAR:
-        if VALOR <= saldo:
-            saldo -= VALOR
-            save(VALOR, prefix="S")
-            atualiza_extrato()
+        VALOR_PERMITIDO = VALOR <= SAQUE_MAXIMO
+        PODE_SACAR = numero_saques < LIMITE_SAQUES
+        TEM_SALDO = VALOR <= saldo
 
-            numero_saques += 1
-            print("Saque realizado.")
+        if not VALOR_PERMITIDO:
+            print("O valor máximo por saque é de R$ 500,00")
+            print(ERR_TXT)
 
-        elif numero_saques > LIMITE_SAQUES:
+        elif not PODE_SACAR:
             print("Você já atingiu o limite de saques diários.")
             print(ERR_TXT)
 
-        else:
+        elif not TEM_SALDO:
             txtSaldo = str(saldo).replace(".", ",")
 
             print(f"O saldo atual é insuficiente: R$ {txtSaldo}.")
             print(ERR_TXT)
 
+        else:
+            saldo -= VALOR
+            save(VALOR, prefix="S")
+            numero_saques += 1
+            print("Saque realizado.")
+
 
 def deposito() -> None:
+    global saldo
     valor = recebe_input("Informe o valor do depósito:")
 
     if valor != VOLTAR:
         save(valor)
+        saldo += valor
+
         print("Deposito realizado.")
 
 
@@ -74,12 +83,15 @@ def limpar_extrato() -> None:
         history.write("")
 
 
-def save(value: str, prefix: str = "D") -> None:
-
-    prefix = "+" if prefix == "D" else "-"
+def save(value: float, prefix: str = "D") -> None:
 
     with open(EXTRATO_ARQUIVO, "a") as history:
+        prefix = "+" if prefix == "D" else "-"
+        value = str(value)
+
         history.write(prefix + value + ";")
+
+    atualiza_extrato()
 
 
 def converte_valor(valor: str) -> float:
@@ -94,11 +106,12 @@ def atualiza_extrato() -> str:
         line = history.readline().split(";")
 
         for value in line:
-            value = float(value)
+            if value:
+                value = float(value)
 
-            if value > 0:
-                extratoTxt += f"DEPOSITO ===== > R${value}C\n"
-            else:
-                extratoTxt += f"SAQUE ======== > R${value}D\n"
+                if value > 0:
+                    extratoTxt += f"DEPOSITO ===== > R${value}C\n"
+                else:
+                    extratoTxt += f"SAQUE ======== > R${value}D\n"
 
     extratoTxt += f"----\nSALDO ======== > R${saldo}C\n----\n"
