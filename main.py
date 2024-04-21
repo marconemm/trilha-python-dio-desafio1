@@ -3,6 +3,8 @@ from funcoes.banco import deposito, extrato, saque, limpar_extrato
 
 
 menu = """
+===
+Escolha uma das opções a seguir:
 
 1 - Depositar
 2 - Sacar
