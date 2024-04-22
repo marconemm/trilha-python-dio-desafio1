@@ -14,8 +14,9 @@ Escolha uma das opções a seguir:
 
 => """
 
-opcao = ""
 OPCOES_VALIDAS = ("0", "1", "2", "3", "4")
+opcao = ""
+limpar_extrato()
 
 while True:
     opcao = input(menu)
@@ -31,6 +32,7 @@ while True:
         saque()
 
     elif opcao == "3":
+        clear()
         extrato()
 
     elif opcao == "4":

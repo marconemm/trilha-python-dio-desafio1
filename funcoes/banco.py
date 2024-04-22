@@ -1,18 +1,17 @@
 from funcoes.utils import clear
-
 import re
 
 saldo = 0.0
 extratoTxt = ""
 numero_saques = 0
-SAQUE_MAXIMO = 500.00
 LIMITE_SAQUES = 3
+SAQUE_MAXIMO = 500.00
 EXTRATO_ARQUIVO = "extrato.txt"
 VOLTAR = "V"
 
 
 def saque() -> None:
-    global saldo, numero_saques, SAQUE_MAXIMO, LIMITE_SAQUES, VOLTAR
+    global saldo, numero_saques, LIMITE_SAQUES, SAQUE_MAXIMO, VOLTAR
     ERR_TXT = "Saque não realizado."
     VALOR = recebe_input("Informe o valor do saque:")
 
@@ -54,7 +53,26 @@ def deposito() -> None:
 
 
 def extrato() -> None:
-    print("extrato exibido.")
+    global extratoTxt
+
+    if extratoTxt:
+        atualiza_extrato()
+        print(extratoTxt)
+
+    else:
+        print("----\nNão foram realizadas movimentações.\n----")
+
+
+def limpar_extrato() -> None:
+    global extratoTxt, saldo, numero_saques
+    extratoTxt = ""
+    saldo = 0.0
+    numero_saques = 0
+
+    with open(EXTRATO_ARQUIVO, "w"):
+        pass  # apaga o conteúdo do arquivo aberto.
+
+    print("O extrato foi apagado com sucesso.")
 
 
 def recebe_input(texto: str) -> str | float:
@@ -78,11 +96,6 @@ def recebe_input(texto: str) -> str | float:
         print('===\nOu informe "v" para voltar.\n')
 
 
-def limpar_extrato() -> None:
-    with open(EXTRATO_ARQUIVO, "w") as history:
-        history.write("")
-
-
 def save(value: float, prefix: str = "D") -> None:
 
     with open(EXTRATO_ARQUIVO, "a") as history:
@@ -102,6 +115,7 @@ def converte_valor(valor: str) -> float:
 
 def atualiza_extrato() -> str:
     with open(EXTRATO_ARQUIVO, "r") as history:
+        global extratoTxt
         extratoTxt = ""
         line = history.readline().split(";")
 
@@ -110,8 +124,8 @@ def atualiza_extrato() -> str:
                 value = float(value)
 
                 if value > 0:
-                    extratoTxt += f"DEPOSITO ===== > R${value}C\n"
+                    extratoTxt += f"DEPOSITO ===== > R${value:.2f}\n"
                 else:
-                    extratoTxt += f"SAQUE ======== > R${value}D\n"
+                    extratoTxt += f"SAQUE ======== > R${abs(value):.2f}\n"
 
     extratoTxt += f"----\nSALDO ======== > R${saldo}C\n----\n"
